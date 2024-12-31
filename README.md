@@ -6,7 +6,7 @@ Tento projekt slouží k extrahování výsledků parlamentních voleb v roce 20
 
 ## Instalace knihoven
 Knihovny, které jsou v kódu použity, jsou uložené v souboru requirements.txt. Pro instalaci je doporučeno nainstalovat
-nové virtuální prostředí a s nainstalovaným managerem pip spustit následujícím způsobem:
+nové virtuální prostředí a s nainstalovaným managerem pip3 spustit následujícím způsobem:
 ```
 $ pip3 --version                      # ověří verzi manageru
 $ pip3 install -r requirements.txt    # nainstaluje knihovny
