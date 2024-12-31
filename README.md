@@ -19,8 +19,8 @@ Jako výsledek získáte vámi pojmenovaný soubor s výsledky voleb a přípono
 
 ## Ukázka projektu
 Výsledky hlasování pro okres Mladá Boleslav:
-1. Argument "https://www.volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=2&xnumnuts=2107"
-2. Argument "vysledky_MB.csv"
+1. Argument ```https://www.volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=2&xnumnuts=2107```
+2. Argument ```vysledky_MB.csv```
 
 Spuštění programu:
 ```
