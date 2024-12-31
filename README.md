@@ -7,6 +7,10 @@ Tento projekt slouží k extrahování výsledků parlamentních voleb v roce 20
 ## Instalace knihoven
 Knihovny, které jsou v kódu použity, jsou uložené v souboru requirements.txt. Pro instalaci je doporučeno nainstalovat
 nové virtuální prostředí a s nainstalovaným managerem pip spustit následujícím způsobem:
+'''
+$ pip --version                       # ověří verzi manageru
+$ pip3 install -r requirements.txt    # nainstaluje knihovny
+'''
 
 ## Spuštění projektu
 Spuštění souboru election_scraper.py v rámci příkazového řádku vyžaduje dva povinné argumenty.
