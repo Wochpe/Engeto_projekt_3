@@ -164,63 +164,97 @@ def make_codes_list (url_region: str) -> list:
     municipality_codes  = get_municipality_numbers(choose_a_tags(parsed1))
     return municipality_codes
 
-# Main program    
-if __name__ == "__main__":
-
-    ## Arguments count validation
+## Functions for arguments validation
+def count_arguments () -> None:
     try:
-        file_name = sys.argv[2]
-        url_region = sys.argv[1]    
-
+        type(sys.argv[1]) == str 
+        type(sys.argv[2]) == str
+    
     except IndexError:
         print('''Two arguments must be given. The first is an url address of the region
 (territorial unit) and the second is a name of the new file.csv.''')
         exit(1)
+    try:
+         type(sys.argv[3]) == str
 
-    ## Arguments validation
-    if url_region == "" or file_name == "":
+    except IndexError:              # Desired error. This error occurs if there are only 2 arguments. The third argument executes "else".
+        return
+    else:
+        print('''Too many arguments given, only two arguments required. 
+The first is an url address of the region (territorial unit), 
+the second is a name of the new file.csv.''')
+        exit(2)
+
+def check_arguments () -> None:
+    if sys.argv[1]  == "" or sys.argv[2] == "":
         print('''Two arguments must be given. The first is an url address of the region
  (territorial unit) and the second is a name of the new file.csv.''')
-        exit(2)
-    elif not url_region.startswith("https://www.volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj="):
-        print("Url address must start with 'https://www.volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj='.")
         exit(3)
-    elif not file_name.endswith(".csv"):
-        print("The url must end with '.csv'.")
+    elif not sys.argv[1].startswith("https://www.volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj="):
+        print("Url address must start with 'https://www.volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj='.")
         exit(4)
-    elif len(url_region) < 71:
-        print("Url address length must be 71 symbols at least.")
+    elif not sys.argv[2].endswith(".csv"):
+        print("The url must end with '.csv'.")
         exit(5)
+    elif len(sys.argv[1] ) < 71:
+        print("Url address length must be 71 symbols at least.")
+        exit(6)
     else:
+        return
 
-        ## Url response validation
-        try:
-            urlretrieve(url_region)
-        except HTTPError as err:
-            print("Web page response incorrect, error code:", err.code)
-        else:
-            parsed = str(get_parsed_request(send_request_get(url_region)))
-            if "Page not found" in parsed:                # Url response "Page not found!"
-                print("Web page not found")
-            else:
+def try_url_response (url_region: str) -> str:
+    try:
+        urlretrieve(url_region)
+    except HTTPError as err:
+        print("Web page response incorrect, error code:", err.code)
+        exit(7)
+    else:
+        return url_region
 
-                ## Final .csv file write
-                print("DOWNLOADING DATA FROM SELECTED URL:", url_region)
-                full_urls = make_list_spec_urls(url_region)
-                municipality_codes = make_codes_list(url_region)
-                municipality_names = make_names_list(url_region)
+def try_page_not_found (url_region: str) -> str:
+    parsed = str(get_parsed_request(send_request_get(url_region)))
+    if "Page not found" in parsed:                # Url response "Page not found!"
+        print("Web page not found")
+        exit(8)
+    else:
+        return url_region
+    
+## Functions for writing .csv
+def write_rows (municipality_codes, municipality_names, full_urls) -> list:
+    rows = []
+    for code, name, url in zip(municipality_codes, municipality_names, full_urls):
+        parsed = get_parsed_request(send_request_get(url))
+        number_registred = get_number(choose_td_numbers(parsed, "sa2"))
+        number_envelopes = get_number(choose_td_numbers(parsed, "sa3"))
+        number_valid_votes = get_number(choose_td_numbers(parsed, "sa6"))
+        votes_per_party = get_party_votes(parsed)
+        row_start = [code, name, number_registred, number_envelopes, number_valid_votes]
+        row = row_start + votes_per_party
+        rows.append(row)
+    return rows
 
-                with open(file_name, mode = "w", newline='', encoding = "utf-8") as new_csv:
-                    writer = csv.writer(new_csv,  dialect = "excel")
-                    writer.writerow(make_header(make_list_spec_urls(url_region)))
-                    print("SAVING TO FILE:", file_name)
-                    for code, name, url in zip(municipality_codes, municipality_names, full_urls):
-                        parsed = get_parsed_request(send_request_get(url))
-                        number_registred = get_number(choose_td_numbers(parsed, "sa2"))
-                        number_envelopes = get_number(choose_td_numbers(parsed, "sa3"))
-                        number_valid_votes = get_number(choose_td_numbers(parsed, "sa6"))
-                        votes_per_party = get_party_votes(parsed)
-                        row_start = [code, name, number_registred, number_envelopes, number_valid_votes]
-                        row = row_start + votes_per_party
-                        writer.writerow(row)
-                    print("EXITING election_scraper")
+def make_new_csv (url_region: str, file_name: str,  rows: list):
+    with open(file_name, mode = "w", newline='', encoding = "utf-8") as new_csv:
+        writer = csv.writer(new_csv,  dialect = "excel")
+        writer.writerow(make_header(make_list_spec_urls(url_region)))
+        writer.writerows(rows)
+
+# Main functions
+def main () -> None:
+    try_url_response(sys.argv[1])
+    try_page_not_found(sys.argv[1])
+    print("DOWNLOADING DATA FROM SELECTED URL:", sys.argv[1])
+
+    full_urls = make_list_spec_urls(sys.argv[1])
+    municipality_codes = make_codes_list(sys.argv[1])
+    municipality_names = make_names_list(sys.argv[1])
+    print("SAVING TO FILE:", sys.argv[2])
+
+    rows = write_rows (municipality_codes, municipality_names, full_urls)
+    make_new_csv(sys.argv[1], sys.argv[2], rows)
+    print("EXITING election_scraper")
+    
+if __name__ == "__main__":
+    count_arguments()
+    check_arguments()
+    main()
